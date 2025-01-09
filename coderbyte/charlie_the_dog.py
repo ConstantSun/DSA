@@ -22,20 +22,56 @@
 # The grid will always contain between 1 and 8 pieces of food.
 
 
+# bruteforce all possible moves 
+# food: 0,1,2,3,4,5
+# -> 013245, 014235,... all permutations
+
+from itertools import permutations
+
 class Solution:
-    def leastAmountOfSteps(strArr):
+    def leastAmountOfSteps(self, strArr: list):
+        food_loc = []
         hi, hj = 0,0
+        ci, cj = 0,0
         for i in range(4):
             for j in range(4):
-                if strArr[i][j] == 'H':
-                    hi, hj = i,j
-                    break
-
-        def get_cost(i,j, k,l):
+                match strArr[i][j]:
+                    case 'H':
+                        hi, hj = i,j
+                    case 'F':
+                        food_loc.append([i, j])
+                    case 'C':
+                        ci, cj = i, j
+            
+        def get_steps(i:int,j:int, k:int,l:int, is_to_house=False):
             ans = abs(i-k) + abs(j-l)
-            if (i==k==hi and  (l > hj > j or l < hj < j)) or (j==l==hj and (i > hi > k or i < hi < k )):
-                ans += 2
+            if not is_to_house:
+                if (i==k==hi and  (l > hj > j or l < hj < j)) or (j==l==hj and (i > hi > k or i < hi < k )):
+                    ans += 2
             return ans
+        
+        no_food = len(food_loc)
+        food_permutations = list(permutations(range(no_food)))
+        smallest_steps = 1e6
+        for path in food_permutations:
+            total = 0 # path e.g: 32041
+            total += get_steps(ci, cj, food_loc[path[0]][0], food_loc[path[0]][1])         # first steps : Charlie to Food
+            total += get_steps(food_loc[path[-1]][0], food_loc[path[-1]][1], hi, hj, True) # last steps  : Food to Home
+            for i in range(no_food-1):
+                total += get_steps(food_loc[path[i]][0], food_loc[path[i]][1], food_loc[path[i+1]][0], food_loc[path[i+1]][1])
+            smallest_steps = min(smallest_steps, total)
+        return smallest_steps
+            
+            
+sol = Solution()
+strArr =  [
+  "FOOF", 
+  "OCOO", 
+  "OOOH", 
+  "FOOO"]       
+# 11
+
+print(sol.leastAmountOfSteps(strArr))
         
         
                 
